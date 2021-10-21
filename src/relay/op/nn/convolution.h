@@ -1070,6 +1070,10 @@ bool Conv2DTransposeRel(const Array<Type>& types, int num_inputs, const Attrs& a
   IndexExpr channels, dilated_ksize_y, dilated_ksize_x;
 
   auto dshape_nchw = trans_in_layout.ForwardShape(data->shape);
+  if (param->groups > 1) {
+    ICHECK(weight->shape.defined())
+        << "Weight shape must be specified when groups is greater than 1.";
+  }
 
   // infer weight if the kernel_size and channels are defined
   if (param->kernel_size.defined() && param->channels.defined()) {
@@ -1108,9 +1112,9 @@ bool Conv2DTransposeRel(const Array<Type>& types, int num_inputs, const Attrs& a
           << " channels=" << param->channels << " wshape=" << Array<IndexExpr>(wshape);
     }
     if (!dshape_nchw[1].as<tir::AnyNode>() && !wshape[0].as<tir::AnyNode>()) {
-      ICHECK(reporter->AssertEQ(indexdiv(dshape_nchw[1], param->groups), wshape[0]));
+      ICHECK(reporter->AssertEQ(dshape_nchw[1], wshape[0]));
     }
-    channels = wshape[1];
+    channels = wshape[0];
     dilated_ksize_y = 1 + (wshape[2] - 1) * param->dilation[0];
     dilated_ksize_x = 1 + (wshape[3] - 1) * param->dilation[1];
   }
