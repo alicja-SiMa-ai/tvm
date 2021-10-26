@@ -1080,14 +1080,19 @@ bool Conv2DTransposeRel(const Array<Type>& types, int num_inputs, const Attrs& a
     ICHECK_EQ(param->kernel_size.size(), 2);
     ICHECK_EQ(param->dilation.size(), 2);
 
-    Array<IndexExpr> wshape({dshape_nchw[1], indexdiv(param->channels, param->groups),
-                             param->kernel_size[0], param->kernel_size[1]});
-
+    tvm::tir::ExprDeepEqual expr_equal;
+    Array<IndexExpr> wshape;
+    if (expr_equal(param->channels, 1)) {
+      wshape = {{dshape_nchw[1], 1, param->kernel_size[0], param->kernel_size[1]}};
+      channels = param->groups;
+    } else {
+      wshape = {{dshape_nchw[1], indexdiv(param->channels, param->groups), param->kernel_size[0], param->kernel_size[1]}};
+      channels = param->channels;
+    }
     wshape = trans_kernel_layout.BackwardShape(wshape);
     dilated_ksize_y = 1 + (param->kernel_size[0] - 1) * param->dilation[0];
     dilated_ksize_x = 1 + (param->kernel_size[1] - 1) * param->dilation[1];
-    channels = param->channels;
-
+  
     DataType weight_dtype = data->dtype;
     if (weight != nullptr) {
       weight_dtype = weight->dtype;
