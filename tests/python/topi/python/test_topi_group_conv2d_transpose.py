@@ -126,7 +126,9 @@ def test_group_conv2d_transpose_nchw():
     verify_group_conv2d_transpose_nchw(1, 32, (8192, 1), 8, (31, 1), (2, 1), (14, 0, 15, 0), (0, 0), 2)
     verify_group_conv2d_transpose_nchw(1, 512, (8, 1), 256, (31, 1), (2, 1), (14, 0, 15, 0), (0, 0), 16)
     verify_group_conv2d_transpose_nchw(1, 512, (8, 1), 256, (31, 1), (2, 1), (14, 0, 15, 0), (1, 0), 16)
-    
+    verify_group_conv2d_transpose_nchw(1, 64, (64, 64), 64, (4, 4), (1, 1), (0, 0, 0, 0), (0, 0), 64)
+    verify_group_conv2d_transpose_nchw(1, 128, (32, 32), 128, (4, 4), (1, 1), (0, 0, 0, 0), (0, 0), 128)
+    verify_group_conv2d_transpose_nchw(1, 256, (16, 16), 256, (4, 4), (1, 1), (0, 0, 0, 0), (0, 0), 256)
 
 if __name__ == "__main__":
     test_group_conv2d_transpose_nchw()

@@ -1081,14 +1081,9 @@ bool Conv2DTransposeRel(const Array<Type>& types, int num_inputs, const Attrs& a
     ICHECK_EQ(param->dilation.size(), 2);
 
     tvm::tir::ExprDeepEqual expr_equal;
-    Array<IndexExpr> wshape;
-    if (expr_equal(param->channels, 1)) {
-      wshape = {{dshape_nchw[1], 1, param->kernel_size[0], param->kernel_size[1]}};
-      channels = param->groups;
-    } else {
-      wshape = {{dshape_nchw[1], indexdiv(param->channels, param->groups), param->kernel_size[0], param->kernel_size[1]}};
-      channels = param->channels;
-    }
+    Array<IndexExpr> wshape = {{dshape_nchw[1], param->channels,
+    param->kernel_size[0], param->kernel_size[1]}};
+    channels = param->channels;
     wshape = trans_kernel_layout.BackwardShape(wshape);
     dilated_ksize_y = 1 + (param->kernel_size[0] - 1) * param->dilation[0];
     dilated_ksize_x = 1 + (param->kernel_size[1] - 1) * param->dilation[1];
@@ -1117,9 +1112,10 @@ bool Conv2DTransposeRel(const Array<Type>& types, int num_inputs, const Attrs& a
           << " channels=" << param->channels << " wshape=" << Array<IndexExpr>(wshape);
     }
     if (!dshape_nchw[1].as<tir::AnyNode>() && !wshape[0].as<tir::AnyNode>()) {
-      ICHECK(reporter->AssertEQ(dshape_nchw[1], wshape[0]));
+      ICHECK(reporter->AssertEQ(indexdiv(dshape_nchw[1], param->groups),
+      indexdiv(wshape[0], param->groups)));
     }
-    channels = wshape[0];
+    channels = wshape[1];
     dilated_ksize_y = 1 + (wshape[2] - 1) * param->dilation[0];
     dilated_ksize_x = 1 + (wshape[3] - 1) * param->dilation[1];
   }

@@ -224,15 +224,14 @@ def group_conv2d_transpose_nchw(Input, Filter, stride, padding, out_dtype, outpu
         stride_h, stride_w = stride
 
     batch, in_channel, in_height, in_width = get_const_tuple(Input.shape)
-    in_channel, out_channel, kernel_h, kernel_w = get_const_tuple(Filter.shape)
+    in_channel_w, out_channel, kernel_h, kernel_w = get_const_tuple(Filter.shape)
 
     assert in_channel % groups == 0, "input channels must divide group size"
-    assert out_channel % groups == 0, "output channels must divide group size"
+    assert in_channel_w % groups == 0, "weight channels must divide group size"
     
     data_pad, kernel_transform = conv2d_transpose_nchw_preprocess(
         Input, Filter, stride, padding, out_dtype, output_padding
     )
-    # print('aaa', data_pad.shape, kernel_transform.shape)
     batch, in_c, in_h, in_w = data_pad.shape
     out_c, _, filter_h, filter_w = kernel_transform.shape
 
